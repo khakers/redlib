@@ -235,7 +235,7 @@
 		{% if !post.awards.is_empty() && prefs.hide_awards != "on" %}
 			{% for award in post.awards.clone() %}
 			<span class="award" title="{{ award.name }}">
-				<img alt="{{ award.name }}" src="{{ award.icon_url }}" width="16" height="16"/>
+				<img alt="{{ award.name }}" src="{{ award.icon_url }}" width="16" height="16" loading="lazy"/>
 			</span>
 			{% endfor %}
 		{% endif %}
@@ -257,51 +257,53 @@
 			<!-- i.redd.it images speical case -->
 			<img width="100%" height="100%" loading="lazy" alt="Post image" src="{{ post.media.url }}"/>
 			{% else %}
-			<svg
-				width="{{ post.media.width }}px"
-				height="{{ post.media.height }}px"
-				xmlns="http://www.w3.org/2000/svg">
-					<image width="100%" height="100%" href="{{ post.media.url }}"/>
-					<desc>
-						<img loading="lazy" alt="Post image" src="{{ post.media.url }}"/>
-					</desc>
-			</svg>
+				{% if post.flags.spoiler %}
+				<div class=spoiler_img>
+					<input id="{{ post.media.download_name }}" type="checkbox">
+					<img class="spoiler_img" loading="lazy" alt="Post image" width="{{ post.media.width }}" height="{{ post.media.height }}" src="{{ post.media.url }}"/>
+					<label for="{{ post.media.download_name }}" class="spoilerImageButton">SPOILER</label>
+				</div>
+				{% else if post.flags.nsfw %}
+				<img class="nsfw_img" loading="lazy" alt="Post image" width="{{ post.media.width }}" height="{{ post.media.height }}" src="{{ post.media.url }}"/>
+				{% else %}
+				<img loading="lazy" alt="Post image" width="{{ post.media.width }}" height="{{ post.media.height }}" src="{{ post.media.url }}"/>
+				{% endif %}
 			{% endif %}
 		</a>
 	</div>
 	{% else if (prefs.layout.is_empty() || prefs.layout == "card") && (post.post_type == "gif" || post.post_type == "video") %}
-	{% if prefs.use_hls == "on" && !post.media.alt_url.is_empty() %}
-	<div class="post_media_content">
-        <video class="post_media_video short{% if prefs.autoplay_videos == "on" %} hls_autoplay{% endif %}" {% if post.media.width > 0 && post.media.height > 0 %}width="{{ post.media.width }}" height="{{ post.media.height }}"{% endif %} poster="{{ post.media.poster }}" controls preload="none">
-			<source src="{{ post.media.alt_url }}" type="application/vnd.apple.mpegurl" />
-			<source src="{{ post.media.url }}" type="video/mp4" />
-		</video>
-	</div>
-	{% else %}
-	<div class="post_media_content">
-		<video class="post_media_video short" src="{{ post.media.url }}" {% if post.media.width > 0 && post.media.height > 0 %}width="{{ post.media.width }}" height="{{ post.media.height }}"{% endif %} poster="{{ post.media.poster }}" preload="none" controls {% if prefs.autoplay_videos == "on" %}autoplay{% endif %}><a href={{ post.media.url }}>Video</a></video>
-	</div>
-	{% call render_hls_notification(format!("{}%23{}", &self.url[1..].replace("&", "%26").replace("+", "%2B"), post.id)) %}
-	{% endif %}
-	{% else if post.post_type != "self" %}
-	<a class="post_thumbnail{% if post.thumbnail.url.is_empty() %} no_thumbnail{% endif %}" href="{% if post.post_type == "link" %}{{ post.media.url }}{% else %}{{ post.permalink }}{% endif %}" rel="nofollow">
-		{% if post.thumbnail.url.is_empty() %}
-		<svg viewBox="0 0 100 106" width="140" height="53" xmlns="http://www.w3.org/2000/svg">
-			<title>Thumbnail</title>
-			<path d="M35,15h-15a10,10 0,0,0 0,20h25a10,10 0,0,0 10,-10m-12.5,0a10, 10 0,0,1 10, -10h25a10,10 0,0,1 0,20h-15" fill="none" stroke-width="5" stroke-linecap="round"/>
-		</svg>
+		{% if prefs.use_hls == "on" && !post.media.alt_url.is_empty() %}
+			<div class="post_media_content">
+				<video class="post_media_video short{% if prefs.autoplay_videos == "on" %} hls_autoplay{% endif %}" {% if post.media.width > 0 && post.media.height > 0 %}width="{{ post.media.width }}" height="{{ post.media.height }}"{% endif %} poster="{{ post.media.poster }}" controls preload="none">
+					<source src="{{ post.media.alt_url }}" type="application/vnd.apple.mpegurl" />
+					<source src="{{ post.media.url }}" type="video/mp4" />
+				</video>
+			</div>
 		{% else %}
-		<div style="max-width:{{ post.thumbnail.width }}px;max-height:{{ post.thumbnail.height }}px;">
-			<svg width="{{ post.thumbnail.width }}px" height="{{ post.thumbnail.height }}px" xmlns="http://www.w3.org/2000/svg">
-				<image width="100%" height="100%" href="{{ post.thumbnail.url }}"/>
-				<desc>
-					<img loading="lazy" alt="Thumbnail" src="{{ post.thumbnail.url }}"/>
-				</desc>
-			</svg>
-		</div>
+			<div class="post_media_content">
+				<video class="post_media_video short" src="{{ post.media.url }}" {% if post.media.width > 0 && post.media.height > 0 %}width="{{ post.media.width }}" height="{{ post.media.height }}"{% endif %} poster="{{ post.media.poster }}" preload="none" controls {% if prefs.autoplay_videos == "on" %}autoplay{% endif %}><a href={{ post.media.url }}>Video</a></video>
+			</div>
+			{% call render_hls_notification(format!("{}%23{}", &self.url[1..].replace("&", "%26").replace("+", "%2B"), post.id)) %}
 		{% endif %}
-		<span>{% if post.post_type == "link" %}{{ post.domain }}{% else %}{{ post.post_type }}{% endif %}</span>
-	</a>
+	{% else if post.post_type != "self" %}
+		<a class="post_thumbnail{% if post.thumbnail.url.is_empty() %} no_thumbnail{% endif %}" href="{% if post.post_type == "link" %}{{ post.media.url }}{% else %}{{ post.permalink }}{% endif %}" rel="nofollow">
+			{% if post.thumbnail.url.is_empty() %}
+			<svg viewBox="0 0 100 106" width="140" height="53" xmlns="http://www.w3.org/2000/svg">
+				<title>Thumbnail</title>
+				<path d="M35,15h-15a10,10 0,0,0 0,20h25a10,10 0,0,0 10,-10m-12.5,0a10, 10 0,0,1 10, -10h25a10,10 0,0,1 0,20h-15" fill="none" stroke-width="5" stroke-linecap="round"/>
+			</svg>
+			{% else %}
+			<div style="max-width:{{ post.thumbnail.width }}px;max-height:{{ post.thumbnail.height }}px;">
+				<svg width="{{ post.thumbnail.width }}px" height="{{ post.thumbnail.height }}px" xmlns="http://www.w3.org/2000/svg">
+					<image width="100%" height="100%" href="{{ post.thumbnail.url }}"/>
+					<desc>
+						<img loading="lazy" alt="Thumbnail" src="{{ post.thumbnail.url }}"/>
+					</desc>
+				</svg>
+			</div>
+			{% endif %}
+			<span>{% if post.post_type == "link" %}{{ post.domain }}{% else %}{{ post.post_type }}{% endif %}</span>
+		</a>
 	{% endif %}
 	<div class="post_score" title="{{ post.score.1 }}">
     {% if prefs.hide_score != "on" %}
@@ -311,7 +313,15 @@
     {% endif %}
     <span class="label"> Upvotes</span></div>
 	<div class="post_body post_preview">
-		{{ post.body|safe }}
+		{% if post.flags.spoiler && post.body.len() > 0 %}
+		<div class=spoiler_img>
+			<input id="{{ post.id }}_spoiler" type="checkbox">
+			{{ post.body|safe }}
+			<label for="{{ post.id }}_spoiler" class="spoilerImageButton">SPOILER</label>
+		</div>
+		{% else %}
+			{{ post.body|safe }}
+		{% endif %}
 	</div>
 
 	{% call poll(post) %}
