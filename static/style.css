@@ -341,11 +341,11 @@ figcaption {
 }
 
 main {
-    display: flex;
-    justify-content: center;
-    max-width: 1000px;
-    padding: 10px 20px;
-    margin: 0 auto;
+    display: grid;
+    column-count: 2;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: 1fr;
+    grid-column-gap: 10px;
     padding-bottom: 4em;
 }
 
@@ -359,13 +359,20 @@ main {
 }
 
 #column_one {
+    grid-area: 1 / 2 / 2 / 3;
     width: 100%;
     border-radius: 5px;
-    max-width: 750px;
     overflow: inherit;
 }
 @media screen and (max-width: 800px) {
     #column_one { max-width: unset; }
+}
+
+main aside {
+    grid-area: 1 / 3 / 2 / 4;
+    flex-grow: 1;
+    margin-top: 18px;
+    max-width: 350px;
 }
 
 /* Body footer. */
