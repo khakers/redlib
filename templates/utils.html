@@ -260,13 +260,13 @@
 				{% if post.flags.spoiler %}
 				<div class=spoiler_img>
 					<input id="{{ post.media.download_name }}" type="checkbox">
-					<img class="spoiler_img" loading="lazy" alt="Post image" width="{{ post.media.width }}" style="aspect-ratio: auto;" src="{{ post.media.url }}"/>
+					<img class="spoiler_img" loading="lazy" alt="Post image" style="aspect-ratio: auto;" src="{{ post.media.url }}"/>
 					<label for="{{ post.media.download_name }}" class="spoilerImageButton">SPOILER</label>
 				</div>
 				{% else if post.flags.nsfw %}
-				<img class="nsfw_img" loading="lazy" alt="Post image" width="{{ post.media.width }}" height="{{ post.media.height }}" src="{{ post.media.url }}"/>
+				<img class="nsfw_img" loading="lazy" alt="Post image" src="{{ post.media.url }}"/>
 				{% else %}
-				<img loading="lazy" alt="Post image" width="{{ post.media.width }}" height="{{ post.media.height }}" src="{{ post.media.url }}"/>
+				<img loading="lazy" alt="Post image" src="{{ post.media.url }}"/>
 				{% endif %}
 			{% endif %}
 		</a>
