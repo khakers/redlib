@@ -5,12 +5,12 @@
 use cached::proc_macro::cached;
 use clap::{Arg, ArgAction, Command};
 use std::str::FromStr;
+use std::sync::LazyLock;
 
 use futures_lite::FutureExt;
 use hyper::Uri;
 use hyper::{header::HeaderValue, Body, Request, Response};
 use log::{info, warn};
-use once_cell::sync::Lazy;
 use redlib::client::{canonical_path, proxy, rate_limit_check, CLIENT};
 use redlib::server::{self, RequestExt};
 use redlib::utils::{error, redirect, ThemeAssets};
@@ -164,12 +164,12 @@ async fn main() {
 			info!("[✅] Rate limit check passed");
 		}
 		Err(e) => {
-			let mut message = format!("Rate limit check failed: {}", e);
+			let mut message = format!("Rate limit check failed: {e}");
 			message += "\nThis may cause issues with the rate limit.";
 			message += "\nPlease report this error with the above information.";
 			message += "\nhttps://github.com/redlib-org/redlib/issues/new?assignees=sigaloid&labels=bug&title=%F0%9F%90%9B+Bug+Report%3A+Rate+limit+mismatch";
 			warn!("{}", message);
-			eprintln!("{}", message);
+			eprintln!("{message}");
 		}
 	}
 
@@ -181,9 +181,9 @@ async fn main() {
 	let ipv6_only = std::env::var("IPV6_ONLY").is_ok() || matches.get_flag("ipv6-only");
 
 	let listener = if ipv4_only {
-		format!("0.0.0.0:{}", port)
+		format!("0.0.0.0:{port}")
 	} else if ipv6_only {
-		format!("[::]:{}", port)
+		format!("[::]:{port}")
 	} else {
 		[address, ":", port].concat()
 	};
@@ -200,11 +200,11 @@ async fn main() {
 	// at first request
 
 	info!("Evaluating config.");
-	Lazy::force(&config::CONFIG);
+	LazyLock::force(&config::CONFIG);
 	info!("Evaluating instance info.");
-	Lazy::force(&instance_info::INSTANCE_INFO);
+	LazyLock::force(&instance_info::INSTANCE_INFO);
 	info!("Creating OAUTH client.");
-	Lazy::force(&OAUTH_CLIENT);
+	LazyLock::force(&OAUTH_CLIENT);
 
 	// Define default headers (added to all responses)
 	app.default_headers = headers! {

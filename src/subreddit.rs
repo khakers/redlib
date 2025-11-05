@@ -7,14 +7,14 @@ use crate::utils::{
 	Subreddit,
 };
 use crate::{client::json, server::RequestExt, server::ResponseExt};
+use askama::Template;
 use cookie::Cookie;
 use htmlescape::decode_html;
 use hyper::{Body, Request, Response};
-use rinja::Template;
 
 use chrono::DateTime;
-use once_cell::sync::Lazy;
 use regex::Regex;
+use std::sync::LazyLock;
 use time::{Duration, OffsetDateTime};
 
 // STRUCTS
@@ -58,7 +58,7 @@ struct WallTemplate {
 	url: String,
 }
 
-static GEO_FILTER_MATCH: Lazy<Regex> = Lazy::new(|| Regex::new(r"geo_filter=(?<region>\w+)").unwrap());
+static GEO_FILTER_MATCH: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"geo_filter=(?<region>\w+)").unwrap());
 
 // SERVICES
 pub async fn community(req: Request<Body>) -> Result<Response<Body>, String> {
@@ -366,9 +366,9 @@ pub async fn subscriptions_filters(req: Request<Body>) -> Result<Response<Body>,
 		let mut subscriptions_number = 1;
 
 		// While whatever subscriptionsNUMBER cookie we're looking at has a value
-		while req.cookie(&format!("subscriptions{}", subscriptions_number)).is_some() {
+		while req.cookie(&format!("subscriptions{subscriptions_number}")).is_some() {
 			// Remove that subscriptions cookie
-			response.remove_cookie(format!("subscriptions{}", subscriptions_number));
+			response.remove_cookie(format!("subscriptions{subscriptions_number}"));
 
 			// Increment subscriptions cookie number
 			subscriptions_number += 1;
@@ -382,7 +382,7 @@ pub async fn subscriptions_filters(req: Request<Body>) -> Result<Response<Body>,
 			let subscriptions_cookie = if subscriptions_number == 0 {
 				"subscriptions".to_string()
 			} else {
-				format!("subscriptions{}", subscriptions_number)
+				format!("subscriptions{subscriptions_number}")
 			};
 
 			response.insert_cookie(
@@ -397,9 +397,9 @@ pub async fn subscriptions_filters(req: Request<Body>) -> Result<Response<Body>,
 		}
 
 		// While whatever subscriptionsNUMBER cookie we're looking at has a value
-		while req.cookie(&format!("subscriptions{}", subscriptions_number_to_delete_from)).is_some() {
+		while req.cookie(&format!("subscriptions{subscriptions_number_to_delete_from}")).is_some() {
 			// Remove that subscriptions cookie
-			response.remove_cookie(format!("subscriptions{}", subscriptions_number_to_delete_from));
+			response.remove_cookie(format!("subscriptions{subscriptions_number_to_delete_from}"));
 
 			// Increment subscriptions cookie number
 			subscriptions_number_to_delete_from += 1;
@@ -415,9 +415,9 @@ pub async fn subscriptions_filters(req: Request<Body>) -> Result<Response<Body>,
 		let mut filters_number = 1;
 
 		// While whatever filtersNUMBER cookie we're looking at has a value
-		while req.cookie(&format!("filters{}", filters_number)).is_some() {
+		while req.cookie(&format!("filters{filters_number}")).is_some() {
 			// Remove that filters cookie
-			response.remove_cookie(format!("filters{}", filters_number));
+			response.remove_cookie(format!("filters{filters_number}"));
 
 			// Increment filters cookie number
 			filters_number += 1;
@@ -430,7 +430,7 @@ pub async fn subscriptions_filters(req: Request<Body>) -> Result<Response<Body>,
 			let filters_cookie = if filters_number == 0 {
 				"filters".to_string()
 			} else {
-				format!("filters{}", filters_number)
+				format!("filters{filters_number}")
 			};
 
 			response.insert_cookie(
@@ -445,9 +445,9 @@ pub async fn subscriptions_filters(req: Request<Body>) -> Result<Response<Body>,
 		}
 
 		// While whatever filtersNUMBER cookie we're looking at has a value
-		while req.cookie(&format!("filters{}", filters_number_to_delete_from)).is_some() {
+		while req.cookie(&format!("filters{filters_number_to_delete_from}")).is_some() {
 			// Remove that filters cookie
-			response.remove_cookie(format!("filters{}", filters_number_to_delete_from));
+			response.remove_cookie(format!("filters{filters_number_to_delete_from}"));
 
 			// Increment filters cookie number
 			filters_number_to_delete_from += 1;
